@@ -1,7 +1,7 @@
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, Unique } from "typeorm";
 
 @Entity()
-@Unique(['username'])
+@Unique(['user_id', 'email'])
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   user_id: number;
@@ -22,11 +22,11 @@ export class User extends BaseEntity {
   gender: string;
 
   @Column()
-  role: string;
+  role: string = "user";
 
   @Column()
-  created_at: Date;
+  created_at: Date = new Date;
 
   @Column()
-  updated_at: Date;
+  updated_at: Date = new Date;
 }
