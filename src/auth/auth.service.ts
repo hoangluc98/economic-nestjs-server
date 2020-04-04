@@ -1,15 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { AuthCredentialsDto } from './dto/auth.credentials.dto';
-import { user } from "./user.entity";
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserRepository } from 'src/users/user.repository';
+import { UserCreateDto } from './../users/dto/user.create.dto';
+import { AuthRegisterDto } from './dto/auth.register.dto';
 
 @Injectable()
 export class AuthService {
-    signIn(authCredentialsDto: AuthCredentialsDto): string {
-        if( authCredentialsDto.username === user.username &&
-            authCredentialsDto.password === user.password
-            ) {
-            return `Hi, ${authCredentialsDto.username}`;
-        }
-        return "Login failed"
-    }
+  constructor(
+    @InjectRepository(UserRepository)
+    private userRepository: UserRepository,
+  ) {}
+
+  async singUp(authRegisterDto: AuthRegisterDto): Promise<void> {
+    return this.userRepository.createUser(authRegisterDto);
+  }
 }
