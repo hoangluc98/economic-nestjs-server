@@ -3,8 +3,10 @@ import { User } from "./user.entity";
 import * as bcrypt from "bcryptjs";
 import { UserCreateDto } from "./dto/user.create.dto";
 import { ConflictException, InternalServerErrorException } from "@nestjs/common";
+import { AuthCredentialsDto } from "src/auth/dto/auth.credentials.dto";
 
 let saltRounds = 7;
+let salt = bcrypt.genSaltSync(saltRounds);
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
@@ -18,7 +20,6 @@ export class UserRepository extends Repository<User> {
     user.gender = gender;
     user.role = role || "user";
 
-    let salt = bcrypt.genSaltSync(saltRounds);
     user.password = bcrypt.hashSync(password, salt);
 
     try {
@@ -29,6 +30,18 @@ export class UserRepository extends Repository<User> {
       } else {
         throw new InternalServerErrorException();
       }
+    }
+  }
+
+  async validateUserPassword(authCredentialsDto: AuthCredentialsDto): Promise<string> {
+    const { email, password } = authCredentialsDto;
+
+    const user = await this.findOne({ email });
+
+    if(user && await user.validateUserPassword(password, salt)) {
+      return user.username;
+    } else {
+      return null;
     }
   }
 }
