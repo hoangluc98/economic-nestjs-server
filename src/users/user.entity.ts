@@ -26,13 +26,16 @@ export class User extends BaseEntity {
   role: string = "user";
 
   @Column()
+  salt: string;
+
+  @Column()
   created_at: Date = new Date;
 
   @Column()
   updated_at: Date = new Date;
 
-  async validateUserPassword(password: string, salt: string): Promise<boolean> {
-    const hash = await bcrypt.hash(password, salt);
+  async validateUserPassword(password: string): Promise<boolean> {
+    const hash = await bcrypt.hash(password, this.salt);
     return hash === this.password;
   }
 }
