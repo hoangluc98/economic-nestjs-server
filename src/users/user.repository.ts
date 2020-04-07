@@ -19,8 +19,8 @@ export class UserRepository extends Repository<User> {
     user.phone = phone;
     user.gender = gender;
     user.role = role || "user";
-
-    user.password = bcrypt.hashSync(password, salt);
+    user.salt = await bcrypt.genSalt();
+    user.password = await this.hashPassword(password, user.salt);
 
     try {
       await user.save();
@@ -38,10 +38,14 @@ export class UserRepository extends Repository<User> {
 
     const user = await this.findOne({ email });
 
-    if(user && await user.validateUserPassword(password, salt)) {
+    if(user && await user.validateUserPassword(password)) {
       return user.username;
     } else {
       return null;
     }
+  }
+
+  private async hashPassword(password: string, salt: string): Promise<string> {
+    return bcrypt.hash(password, salt);
   }
 }
