@@ -23,7 +23,7 @@ export class User extends BaseEntity {
   gender: string;
 
   @Column()
-  role: string = "user";
+  role: string;
 
   @Column()
   salt: string;
