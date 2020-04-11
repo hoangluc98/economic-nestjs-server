@@ -15,15 +15,18 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signIn(authCredentialsDto: AuthCredentialsDto): Promise<{ accessToken: string }> {
-    const username = await this.userRepository.validateUserPassword(authCredentialsDto);
-    if(!username) {
+  async signIn(authCredentialsDto: AuthCredentialsDto, typeUrl?: string): Promise<{ accessToken: string }> {
+    const payload: JwtPayload = await this.userRepository.validateUserPassword(authCredentialsDto);
+    if (!payload.username) {
       throw new UnauthorizedException('Invalid credentials');
     }
+    if (typeUrl === "signin-admin") {
+      if (payload.role !== "admin") {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+    }
 
-    const payload: JwtPayload = { username };
     const accessToken = this.jwtService.sign(payload);
-    
     return { accessToken };
   }
 
