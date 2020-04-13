@@ -1,6 +1,7 @@
-import { IsString, MinLength, MaxLength, Matches, IsEmail, IsIn, IsDate } from "class-validator";
+import { IsString, MinLength, MaxLength, Matches, IsEmail, IsIn, IsDate, IsOptional } from "class-validator";
 
-export class CreateUserDto {
+export class UpdateUserDto {
+  @IsOptional()
   @IsString()
   @MinLength(3)
   @MaxLength(20)
@@ -9,10 +10,7 @@ export class CreateUserDto {
   )
   username: string;
 
-  @IsString()
-  @IsEmail()
-  email: string;
-
+  @IsOptional()
   @IsString()
   @MinLength(8)
   @MaxLength(20)
@@ -21,6 +19,7 @@ export class CreateUserDto {
   )
   password: string;
 
+  @IsOptional()
   @IsString()
   @MinLength(10)
   @MaxLength(11)
@@ -29,17 +28,13 @@ export class CreateUserDto {
   )
   phone: string;
 
+  @IsOptional()
   @IsString()
   @IsIn(["male", "female"])
   gender: string;
 
+  @IsOptional()
   @IsString()
   @IsIn(["user", "admin"])
   role: string = "user";
-
-  // @IsDate()
-  // created_at: Date = new Date;
-
-  // @IsDate()
-  // updated_at: Date = new Date;
 }

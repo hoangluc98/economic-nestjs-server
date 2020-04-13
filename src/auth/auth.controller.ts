@@ -30,13 +30,14 @@ export class AuthController {
   @Get('/current-user')
   @UseGuards(AuthGuard())
   getCurrentUser(@GetUser() user: User) {
-    let {user_id, username, email, phone, gender} = user;
+    let {user_id, username, email, phone, gender, role} = user;
     const currentUser = {
       user_id: user_id,
       username: username,
       email: email,
       phone: phone,
-      gender: gender
+      gender: gender,
+      role: role
     }
     return currentUser;
   }
