@@ -2,19 +2,28 @@ import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, Unique } from "type
 import * as bcrypt from "bcryptjs";
 
 @Entity()
-@Unique(['user_id', 'email'])
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   user_id: number;
 
-  @Column()
+  @Column({
+    type: "nvarchar",
+    length: 30
+  })
   username: string;
 
-  @Column()
+  @Column({
+    type: "varchar",
+    length: 30,
+    unique: true
+  })
   email: string;
 
   @Column()
   password: string;
+
+  @Column()
+  avatar: string = "default.jpg";
 
   @Column()
   phone: string;
