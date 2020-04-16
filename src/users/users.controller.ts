@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards, Get, Query, ValidationPipe, Param, ParseIntPipe, UsePipes, Body, Delete, Patch } from '@nestjs/common';
+import { Controller, Post, UseGuards, Get, Query, ValidationPipe, Param, ParseIntPipe, UsePipes, Body, Delete, Patch, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { GetUsersFilterDto } from './dto/get-users-filter.dto'
@@ -6,6 +6,8 @@ import { CreateUserDto } from './dto/user.create.dto';
 import { UpdateUserDto } from './dto/user.update.dto';
 import { User } from './user.entity';
 import { UsersService } from './users.service';
+import { FileInterceptor } from "@nestjs/platform-express"
+import { multerOptions } from 'src/config/multer.config';
 
 @Controller('users')
 @UseGuards(AuthGuard())
@@ -29,11 +31,13 @@ export class UsersController {
   }
 
   @Post()
+  @UseInterceptors(FileInterceptor('file', multerOptions))
   @UsePipes(ValidationPipe)
-  createTask(
-    @Body() createUserDto: CreateUserDto
+  createUser(
+    @Body() createUserDto: CreateUserDto,
+    @UploadedFile() file?
   ): Promise<void> {
-    return this.usersService.createUser(createUserDto);
+    return this.usersService.createUser(createUserDto, file);
   }
 
   @Delete('/:id')
@@ -44,10 +48,12 @@ export class UsersController {
   }
 
   @Patch('/:id')
+  @UseInterceptors(FileInterceptor('file', multerOptions))
   updateUser(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserDto: UpdateUserDto
+    @Body() updateUserDto: UpdateUserDto,
+    @UploadedFile() file?
   ): Promise<User> {
-    return this.usersService.updateUser(id, updateUserDto);
+    return this.usersService.updateUser(id, updateUserDto, file);
   }
 }

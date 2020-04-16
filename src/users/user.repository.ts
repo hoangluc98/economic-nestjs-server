@@ -7,8 +7,6 @@ import { AuthCredentialsDto } from "src/auth/dto/auth.credentials.dto";
 import { GetUsersFilterDto } from "./dto/get-users-filter.dto";
 import { UpdateUserDto } from "./dto/user.update.dto";
 
-let saltRounds = 7;
-let salt = bcrypt.genSaltSync(saltRounds);
 const selectUserQueryBuilder = ["user.user_id", "user.username", 
                                 "user.email", "user.avatar", 
                                 "user.phone", "user.gender", 
@@ -39,9 +37,24 @@ export class UserRepository extends Repository<User> {
     }
   }
 
-  async createUser(createUserDto: CreateUserDto): Promise<void> {
+  getUserById(
+    id: number,
+    user: User,
+  ) {
+    return this.createQueryBuilder("user")
+      .select(["user.user_id", "user.username", 
+        "user.email", "user.avatar", 
+        "user.phone", "user.gender", 
+        "user.role"
+      ])
+      .where("user.user_id = :user_id", { user_id: id })
+      .getOne();
+  }
+
+  async createUser(createUserDto: CreateUserDto, file?): Promise<void> {
     const user = new User();
     Object.assign(user, createUserDto);
+    user.avatar = file ? file.filename : "default.jpg";
     user.role = user.role || "user";
     user.salt = await bcrypt.genSalt();
     user.password = await this.hashPassword(user.password, user.salt);
@@ -59,13 +72,20 @@ export class UserRepository extends Repository<User> {
 
   async updateUser(
     id: number,
-    updateUserDto: UpdateUserDto
+    updateUserDto: UpdateUserDto,
+    file?
   ): Promise<User> {
+    const user = new User();
+    Object.assign(user, updateUserDto);
+    user.avatar = file ? file.filename : "default.jpg";
+    user.updated_at = new Date;
+    
     await this.createQueryBuilder()
-      .update(updateUserDto)
+      .update(user)
       .where("user_id = :user_id", { user_id: id })
       .execute();
-    const user = await this.findOne({
+
+    return this.findOne({
       select: [ "user_id", "username", 
                 "email", "avatar", 
                 "phone", "gender", 
@@ -73,7 +93,6 @@ export class UserRepository extends Repository<User> {
       ],
       where: { user_id: id }
     });
-    return user;
   }
 
   async validateUserPassword(authCredentialsDto: AuthCredentialsDto) {

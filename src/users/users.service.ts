@@ -24,15 +24,7 @@ export class UsersService {
     id: number,
     user: User,
   ): Promise<User> {
-    // const found = await this.userRepository.findOne({ where: { user_id: id } });
-    const found = await this.userRepository.createQueryBuilder("user")
-      .select(["user.user_id", "user.username", 
-        "user.email", "user.avatar", 
-        "user.phone", "user.gender", 
-        "user.role"
-      ])
-      .where("user.user_id = :user_id", { user_id: id })
-      .getOne();
+    const found = await this.userRepository.getUserById(id, user);
     if(!found) {
       throw new NotFoundException(`User with ID "${id}" not found`);
     }
@@ -40,10 +32,11 @@ export class UsersService {
     return found;
   }
 
-  async createUser(
-    createUserDTO: CreateUserDto
+  createUser(
+    createUserDTO: CreateUserDto,
+    file?
   ): Promise<void>  {
-    return this.userRepository.createUser(createUserDTO);
+    return this.userRepository.createUser(createUserDTO, file);
   }
 
   async deleteUser(
@@ -56,10 +49,11 @@ export class UsersService {
     }
   }
 
-  async updateUser(
+  updateUser(
     id: number, 
-    updateUserDto: UpdateUserDto
+    updateUserDto: UpdateUserDto,
+    file?
   ): Promise<User> {
-    return this.userRepository.updateUser(id, updateUserDto);
+    return this.userRepository.updateUser(id, updateUserDto, file);
   }
 }

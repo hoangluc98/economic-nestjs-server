@@ -1,4 +1,4 @@
-import { IsString, MinLength, MaxLength, Matches, IsEmail, IsIn, IsDate } from "class-validator";
+import { IsString, MinLength, MaxLength, Matches, IsEmail, IsIn, IsDate, IsOptional } from "class-validator";
 
 export class AuthRegisterDto {
   @IsString()
@@ -36,6 +36,10 @@ export class AuthRegisterDto {
   @IsString()
   @IsIn(["user", "admin"])
   role: string = "user";
+
+  @IsOptional()
+  @IsString()
+  avatar: string;
 
   // @IsDate()
   // created_at: Date;
