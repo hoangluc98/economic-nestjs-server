@@ -38,10 +38,10 @@ export class User extends BaseEntity {
   salt: string;
 
   @Column()
-  created_at: Date = new Date;
+  created_at: Date;
 
   @Column()
-  updated_at: Date = new Date;
+  updated_at: Date;
 
   async validateUserPassword(password: string): Promise<boolean> {
     const hash = await bcrypt.hash(password, this.salt);

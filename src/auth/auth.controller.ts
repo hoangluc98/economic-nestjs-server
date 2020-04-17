@@ -23,7 +23,7 @@ export class AuthController {
   }
 
   @Post('/signup')
-  signUp(@Body(ValidationPipe) authRegisterDto: AuthRegisterDto): Promise<void> {
+  signUp(@Body(ValidationPipe) authRegisterDto: AuthRegisterDto) {
     return this.authService.signUp(authRegisterDto);
   }
 
