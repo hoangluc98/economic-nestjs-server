@@ -18,42 +18,41 @@ export class UsersController {
   getUsers(
     @Query(ValidationPipe) filterDto: GetUsersFilterDto,
     @GetUser() user: User,
-  ): Promise<User[]> {
+  ): Promise<{message: string, users: User[]}> {
     return this.usersService.getUsers(filterDto, user);
   }
 
   @Get('/:id')
   getUserById(
-    @Param('id', ParseIntPipe) id: number,
-    @GetUser() user: User,
-  ): Promise<User> {
-    return this.usersService.getUserById(id, user);
+    @Param('id', ParseIntPipe) id: number
+  ): Promise<{message: string, user: User}> {
+    return this.usersService.getUserById(id);
   }
 
   @Post()
-  @UseInterceptors(FileInterceptor('file', multerOptions))
+  @UseInterceptors(FileInterceptor('avatar', multerOptions))
   @UsePipes(ValidationPipe)
   createUser(
     @Body() createUserDto: CreateUserDto,
     @UploadedFile() file?
-  ): Promise<void> {
+  ): Promise<{message: string, user: User}> {
     return this.usersService.createUser(createUserDto, file);
   }
 
   @Delete('/:id')
   deleteUser(
     @Param('id', ParseIntPipe) id: number
-  ): Promise<void> {
+  ): Promise<{message: string}> {
     return this.usersService.deleteUser(id);
   }
 
   @Patch('/:id')
-  @UseInterceptors(FileInterceptor('file', multerOptions))
+  @UseInterceptors(FileInterceptor('avatar', multerOptions))
   updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
     @UploadedFile() file?
-  ): Promise<User> {
+  ): Promise<{message: string, user: User}> {
     return this.usersService.updateUser(id, updateUserDto, file);
   }
 }

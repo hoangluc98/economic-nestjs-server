@@ -16,15 +16,14 @@ export class UsersService {
   getUsers(
     filterDto: GetUsersFilterDto,
     user: User,
-  ): Promise<User[]> {
+  ): Promise<{message: string, users: User[]}> {
     return this.userRepository.getUsers(filterDto, user);
   }
 
   async getUserById(
-    id: number,
-    user: User,
-  ): Promise<User> {
-    const found = await this.userRepository.getUserById(id, user);
+    id: number
+  ): Promise<{message: string, user: User}> {
+    const found = await this.userRepository.getUserById(id);
     if(!found) {
       throw new NotFoundException(`User with ID "${id}" not found`);
     }
@@ -35,17 +34,21 @@ export class UsersService {
   createUser(
     createUserDTO: CreateUserDto,
     file?
-  ): Promise<void>  {
+  ): Promise<{message: string, user: User}> {
     return this.userRepository.createUser(createUserDTO, file);
   }
 
   async deleteUser(
     id: number
-  ): Promise<void> {
+  ): Promise<{message: string}> {
     const result = await this.userRepository.delete({ user_id: id });
     
     if(result.affected === 0) {
       throw new NotFoundException(`User with ID "${id}" not found`);
+    }
+
+    return {
+      message: "Delete user success"
     }
   }
 
@@ -53,7 +56,7 @@ export class UsersService {
     id: number, 
     updateUserDto: UpdateUserDto,
     file?
-  ): Promise<User> {
+  ): Promise<{message: string, user: User}> {
     return this.userRepository.updateUser(id, updateUserDto, file);
   }
 }

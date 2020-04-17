@@ -7,18 +7,19 @@ import { AuthCredentialsDto } from "src/auth/dto/auth.credentials.dto";
 import { GetUsersFilterDto } from "./dto/get-users-filter.dto";
 import { UpdateUserDto } from "./dto/user.update.dto";
 
-const selectUserQueryBuilder = ["user.user_id", "user.username", 
-                                "user.email", "user.avatar", 
-                                "user.phone", "user.gender", 
-                                "user.role"
-                              ];
+const selectUserQueryBuilder = [
+  "user.user_id", "user.username", 
+  "user.email", "user.avatar", 
+  "user.phone", "user.gender", 
+  "user.role"
+];
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
   async getUsers(
     filterDto: GetUsersFilterDto,
     user: User,
-  ): Promise<User[]> {
+  ): Promise<{message: string, users: User[]}> {
     const { search } = filterDto;
 
     const query = this.createQueryBuilder("user");
@@ -31,36 +32,66 @@ export class UserRepository extends Repository<User> {
 
     try {
       const users = await query.getMany();
-      return users;
+      return {
+        message: "Get users success.",
+        users: users
+      };
     } catch (error) {
       throw new InternalServerErrorException();
     }
   }
 
-  getUserById(
-    id: number,
-    user: User,
-  ) {
-    return this.createQueryBuilder("user")
-      .select(["user.user_id", "user.username", 
-        "user.email", "user.avatar", 
-        "user.phone", "user.gender", 
-        "user.role"
-      ])
-      .where("user.user_id = :user_id", { user_id: id })
-      .getOne();
+  async getUserById(
+    id: number
+  ): Promise<{message: string, user: User}> {
+    try {
+      let user = await this.createQueryBuilder("user")
+        .select(["user.user_id", "user.username", 
+          "user.email", "user.avatar", 
+          "user.phone", "user.gender", 
+          "user.role"
+        ])
+        .where("user.user_id = :user_id", { user_id: id })
+        .getOne();
+
+      return {
+        message: "Get user by id success.",
+        user: user
+      }
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
-  async createUser(createUserDto: CreateUserDto, file?): Promise<void> {
+  async createUser(createUserDto: CreateUserDto, file?): Promise<{message: string, user: User}> {
     const user = new User();
     Object.assign(user, createUserDto);
     user.avatar = file ? file.filename : "default.jpg";
     user.role = user.role || "user";
     user.salt = await bcrypt.genSalt();
     user.password = await this.hashPassword(user.password, user.salt);
+    user.created_at = new Date;
+    user.updated_at = new Date;
 
     try {
-      await user.save();
+      const createdUser = await user.save();
+      const resUser = new User();
+      Object.assign(resUser, {
+        user_id: createdUser.user_id,
+        username: createdUser.username,
+        email: createdUser.email,
+        avatar: createdUser.avatar,
+        phone: createdUser.phone,
+        gender: createdUser.gender,
+        role: createdUser.role,
+      });
+      
+      let res = {
+        message: "Create user success!",
+        user: resUser
+      }
+      
+      return res;
     } catch (error) {
       if(error.code === "ER_DUP_ENTRY") {
         throw new ConflictException("Username already exists.");
@@ -74,25 +105,33 @@ export class UserRepository extends Repository<User> {
     id: number,
     updateUserDto: UpdateUserDto,
     file?
-  ): Promise<User> {
+  ): Promise<{message: string, user: User}> {
     const user = new User();
     Object.assign(user, updateUserDto);
     user.avatar = file ? file.filename : "default.jpg";
     user.updated_at = new Date;
-    
-    await this.createQueryBuilder()
+    try {
+      await this.createQueryBuilder()
       .update(user)
       .where("user_id = :user_id", { user_id: id })
       .execute();
 
-    return this.findOne({
-      select: [ "user_id", "username", 
-                "email", "avatar", 
-                "phone", "gender", 
-                "role"
-      ],
-      where: { user_id: id }
-    });
+      let findUser = await this.findOne({
+        select: [ "user_id", "username", 
+                  "email", "avatar", 
+                  "phone", "gender", 
+                  "role"
+        ],
+        where: { user_id: id }
+      });
+
+      return {
+        message: "Update user success",
+        user: findUser
+      }
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   async validateUserPassword(authCredentialsDto: AuthCredentialsDto) {
